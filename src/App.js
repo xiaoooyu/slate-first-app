@@ -37,23 +37,43 @@ class App extends React.Component {
   }
 
   onKeyDown = (event, editor, next) => {
-    // Return with no changes if the keypress is not '&'
-    if (event.key !== '&') return next()
+    if (!event.ctrlKey) return next()
 
-    // Prevent the ampersand character from being inserted.
-    event.preventDefault()
-
-    // Change the value by inserting 'and' at the cursor's position
-    editor.insertText('and')
-    return true
+    switch (event.key) {
+      case '`':
+        event.preventDefault()
+        // Determine whether any of the currently selected blocks are code block 
+        const isCode = editor.value.blocks.some(block => block.type === 'code') 
+        // 
+        editor.setBlocks(isCode ? 'paragraph' : 'code');
+        return true;        
+      default:
+        return next();
+    }   
   }
-  
+    
   render() {
     return <Editor value={this.state.value}
       onChange={this.onChange}
       onKeyDown={this.onKeyDown}
+      renderNode={this.renderNode}
     />
   }
+
+  renderNode = (props, editor, next) => {
+    switch (props.node.type) {
+      case 'code':
+        return <CodeNode {...props} />
+      default:
+        return next()
+    }
+  }
+}
+
+function CodeNode(props) {
+  return (<pre {...props.attributes}>
+    <code>{props.children}</code>
+  </pre>)
 }
 
 export default App;
