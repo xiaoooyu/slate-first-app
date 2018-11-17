@@ -3,8 +3,9 @@ import React from 'react'
 import { Editor } from 'slate-react'
 import { Value } from 'slate'
 
+const existingValue = JSON.parse(localStorage.getItem('content'))
 // Create our initial value...
-const initialValue = Value.fromJSON({
+const initialValue = Value.fromJSON(existingValue || {
   document: {
     nodes: [
       {
@@ -60,6 +61,11 @@ class App extends React.Component {
 
   // On change, update the app's React state with the new editor value.
   onChange = ({ value }) => {
+    if (value.document !== this.state.value.document) {
+      const content = JSON.stringify(value.toJSON())
+      localStorage.setItem('content', content)
+    }    
+    
     this.setState({value})
   }  
     
