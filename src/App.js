@@ -40,15 +40,19 @@ class App extends React.Component {
     if (!event.ctrlKey) return next()
 
     switch (event.key) {
+      case 'b': 
+        event.preventDefault()
+        editor.toggleMark('bold')
+        return true
       case '`':
         event.preventDefault()
         // Determine whether any of the currently selected blocks are code block 
         const isCode = editor.value.blocks.some(block => block.type === 'code') 
         // 
-        editor.setBlocks(isCode ? 'paragraph' : 'code');
-        return true;        
+        editor.setBlocks(isCode ? 'paragraph' : 'code')
+        return true
       default:
-        return next();
+        return next()
     }   
   }
     
@@ -57,6 +61,7 @@ class App extends React.Component {
       onChange={this.onChange}
       onKeyDown={this.onKeyDown}
       renderNode={this.renderNode}
+      renderMark={this.renderMark}
     />
   }
 
@@ -68,12 +73,25 @@ class App extends React.Component {
         return next()
     }
   }
+
+  renderMark = (props, editor, next) => {
+    switch (props.mark.type) {
+      case 'bold':
+        return <BoldMark {...props} />
+      default:
+        return next()
+    }
+  }
 }
 
 function CodeNode(props) {
   return (<pre {...props.attributes}>
     <code>{props.children}</code>
   </pre>)
+}
+
+function BoldMark(props) {
+  return <strong>{props.children}</strong>
 }
 
 export default App;
