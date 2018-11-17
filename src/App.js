@@ -25,6 +25,33 @@ const initialValue = Value.fromJSON({
   }
 })
 
+function MarkHotkey(options) {
+  // Grab our options from the ones passed in.
+  const { type, key } = options
+
+  // Return our "plugin" object, containing the 'onKeyDown' handler
+  return {
+    onKeyDown(event, editor, next) {
+      // If it doesn't match our `key`, let other plugins handle it.
+      if(!event.ctrlKey || event.key !== key) return next()
+
+      // Prevent the default characters from being inserted.
+      event.preventDefault()
+
+      // Toggle the mark `type`
+      editor.toggleMark(type)
+    }
+  }
+}
+
+const plugins = [
+  MarkHotkey({key: 'b', type: 'bold'}),
+  MarkHotkey({key: '`', type: 'code'}),
+  MarkHotkey({key: 'i', type: 'italic'}),
+  MarkHotkey({key: 'd', type: 'strikethrough'}),
+  MarkHotkey({key: 'u', type: 'underline'}),
+]
+
 class App extends React.Component {
   // Set the initial value when the app is first constructed.
   state = {
@@ -34,64 +61,32 @@ class App extends React.Component {
   // On change, update the app's React state with the new editor value.
   onChange = ({ value }) => {
     this.setState({value})
-  }
-
-  onKeyDown = (event, editor, next) => {
-    if (!event.ctrlKey) return next()
-
-    switch (event.key) {
-      case 'b': 
-        event.preventDefault()
-        editor.toggleMark('bold')
-        return true
-      case '`':
-        event.preventDefault()
-        // Determine whether any of the currently selected blocks are code block 
-        const isCode = editor.value.blocks.some(block => block.type === 'code') 
-        // 
-        editor.setBlocks(isCode ? 'paragraph' : 'code')
-        return true
-      default:
-        return next()
-    }   
-  }
+  }  
     
   render() {
-    return <Editor value={this.state.value}
-      onChange={this.onChange}
-      onKeyDown={this.onKeyDown}
-      renderNode={this.renderNode}
+    return <Editor value={this.state.value}      
+      plugins={plugins}
+      onChange={this.onChange}      
       renderMark={this.renderMark}
     />
-  }
-
-  renderNode = (props, editor, next) => {
-    switch (props.node.type) {
-      case 'code':
-        return <CodeNode {...props} />
-      default:
-        return next()
-    }
-  }
+  }  
 
   renderMark = (props, editor, next) => {
     switch (props.mark.type) {
       case 'bold':
-        return <BoldMark {...props} />
+        return <strong>{props.children}</strong>
+      case 'code':
+        return <code>{props.children}</code>
+      case 'italic':
+        return <em>{props.children}</em>
+      case 'strikethrough':
+        return <del>{props.children}</del>
+      case 'underline':
+        return <u>{props.children}</u>
       default:
         return next()
     }
   }
-}
-
-function CodeNode(props) {
-  return (<pre {...props.attributes}>
-    <code>{props.children}</code>
-  </pre>)
-}
-
-function BoldMark(props) {
-  return <strong>{props.children}</strong>
 }
 
 export default App;
