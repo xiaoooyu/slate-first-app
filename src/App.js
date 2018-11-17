@@ -34,11 +34,24 @@ class App extends React.Component {
   // On change, update the app's React state with the new editor value.
   onChange = ({ value }) => {
     this.setState({value})
-  }  
+  }
+
+  onKeyDown = (event, editor, next) => {
+    // Return with no changes if the keypress is not '&'
+    if (event.key !== '&') return next()
+
+    // Prevent the ampersand character from being inserted.
+    event.preventDefault()
+
+    // Change the value by inserting 'and' at the cursor's position
+    editor.insertText('and')
+    return true
+  }
   
   render() {
     return <Editor value={this.state.value}
       onChange={this.onChange}
+      onKeyDown={this.onKeyDown}
     />
   }
 }
